@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskAzRa</title>
+<link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    var saved = localStorage.getItem("taskazra_theme_cache");
+    var theme = saved || "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+
+    var savedFontScale = localStorage.getItem("taskazra_font_scale");
+    if (savedFontScale) {
+      document.documentElement.style.fontSize = savedFontScale + "%";
+    }
+  })();
+</script>
+</head>
+<body>
+
+<section id="login-screen">
+  <div class="login-box">
+    <h1>TaskAzRa <span id="version-tag-login" class="version-tag"></span></h1>
+
+    <form id="login-form">
+      <h2>Entrar</h2>
+      <label>Usuário<input type="text" id="login-username" required autocomplete="username"></label>
+      <label>PIN<input type="password" id="login-pin" required autocomplete="current-password"></label>
+      <button type="submit">Entrar</button>
+    </form>
+
+    <p class="meta">
+      Não tem conta? <button type="button" id="show-register-btn" class="link-btn">Cadastre-se</button>
+    </p>
+
+    <form id="register-form" class="hidden">
+      <h2>Criar conta</h2>
+      <label>Nome<input type="text" id="register-name" required></label>
+      <label>Usuário<input type="text" id="register-username" required autocomplete="username"></label>
+      <label>PIN<input type="password" id="register-pin" required autocomplete="new-password"></label>
+      <label>E-mail (opcional)<input type="email" id="register-email"></label>
+      <button type="submit">Cadastrar</button>
+    </form>
+
+    <p class="meta">
+      <button type="button" id="show-login-btn" class="link-btn hidden">Já tenho conta</button>
+    </p>
+  </div>
+</section>
+
+<div id="app-container" class="hidden">
+<div class="app-header">
+<header>
+  <h1>TaskAzRa <span id="version-tag" class="version-tag"></span></h1>
+  <div id="user-bar">
+    <span id="current-user-name" class="current-user-name"></span>
+    <button id="theme-toggle" type="button" aria-label="Alternar tema claro/escuro">🌙</button>
+    <div class="font-size-controls">
+      <button id="font-decrease-btn" type="button" aria-label="Diminuir fonte">A-</button>
+      <button id="font-increase-btn" type="button" aria-label="Aumentar fonte">A+</button>
+    </div>
+    <button id="logout-btn" type="button">Sair</button>
+  </div>
+</header>
+
+<nav>
+  <button data-view="pendentes" class="nav-btn active">Tarefas</button>
+  <button data-view="confirmar" id="nav-confirmar-btn" class="nav-btn hidden">Confirmar</button>
+  <button data-view="nova" class="nav-btn">Nova tarefa</button>
+  <button data-view="relatorios" class="nav-btn">Relatórios</button>
+  <button data-view="usuarios" class="nav-btn">Usuários</button>
+</nav>
+</div>
+
+<main>
+  <section id="view-pendentes" class="view">
+    <div class="section-header">
+      <h2>Tarefas pendentes</h2>
+      <div class="filter-group">
+        <label class="filter-inline">Responsável
+          <select id="pendentes-filter-person">
+            <option value="">Todos</option>
+          </select>
+        </label>
+        <input type="text" id="pendentes-search" class="filter-search-input" placeholder="Buscar">
+      </div>
+    </div>
+    <div id="pendentes-list"></div>
+
+    <div class="section-header">
+      <h3 id="concluidas-recentes-title">Concluídas nos últimos 7 dias</h3>
+      <button type="button" id="toggle-concluidas-btn" class="icon-btn">▾ Recolher</button>
+    </div>
+    <ul id="concluidas-recentes-list" class="task-list"></ul>
+  </section>
+
+  <section id="view-confirmar" class="view hidden">
+    <h2>Tarefas aguardando confirmação</h2>
+    <p class="meta">Essas tarefas foram marcadas como feitas, mas precisam da sua confirmação (só quem criou pode confirmar). Um comentário é obrigatório.</p>
+    <div id="confirmar-list"></div>
+  </section>
+
+  <section id="view-nova" class="view hidden">
+    <h2 id="task-form-title">Nova tarefa</h2>
+    <form id="task-form">
+      <label>Título<input type="text" id="task-title" required></label>
+      <label>Descrição<textarea id="task-description"></textarea></label>
+      <label>Tags (separadas por vírgula)
+        <input type="text" id="task-tags" placeholder="ex: mercado, urgente" list="tags-datalist">
+      </label>
+      <datalist id="tags-datalist"></datalist>
+      <label>Prioridade
+        <select id="task-priority">
+          <option value="baixa">Baixa</option>
+          <option value="media" selected>Média</option>
+          <option value="alta">Alta</option>
+        </select>
+      </label>
+      <label>Responsável
+        <select id="task-assigned"></select>
+      </label>
+      <label class="checkbox-inline">
+        <input type="checkbox" id="task-needs-confirmation">
+        Precisa de confirmação de quem criou pra ser concluída
+      </label>
+      <label>Tipo
+        <select id="task-type">
+          <option value="unica">Única</option>
+          <option value="periodica">Periódica</option>
+          <option value="manual">Ativação manual</option>
+        </select>
+      </label>
+
+      <div id="due-date-fields" class="due-date-row">
+        <label class="checkbox-inline">
+          <input type="checkbox" id="has-due-date"> Definir data limite:
+        </label>
+        <input type="date" id="due-date" disabled>
+      </div>
+
+      <div id="recurrence-fields" class="hidden">
+        <label>Tipo de recorrência
+          <select id="recurrence-kind">
+            <option value="intervalo_dias">A cada X dias</option>
+            <option value="dia_fixo_mes">Dia fixo do mês</option>
+            <option value="dia_semana">Dias da semana</option>
+          </select>
+        </label>
+
+        <label id="recurrence-interval-wrapper">A cada quantos dias
+          <input type="number" id="recurrence-interval" min="1" placeholder="ex: 3">
+        </label>
+
+        <label id="recurrence-month-day-wrapper" class="hidden">Dia do mês
+          <input type="number" id="recurrence-month-day" min="1" max="31" placeholder="ex: 15">
+        </label>
+
+        <div id="recurrence-weekday-wrapper" class="hidden">
+          <span>Dias da semana</span>
+          <div class="weekday-checkboxes">
+            <label><input type="checkbox" value="SEG"> Seg</label>
+            <label><input type="checkbox" value="TER"> Ter</label>
+            <label><input type="checkbox" value="QUA"> Qua</label>
+            <label><input type="checkbox" value="QUI"> Qui</label>
+            <label><input type="checkbox" value="SEX"> Sex</label>
+            <label><input type="checkbox" value="SAB"> Sáb</label>
+            <label><input type="checkbox" value="DOM"> Dom</label>
+          </div>
+        </div>
+
+        <label>Repetir até
+          <select id="recurrence-end-type">
+            <option value="never">Sem data de fim</option>
+            <option value="date">Uma data específica</option>
+            <option value="count">Um número de repetições</option>
+          </select>
+        </label>
+        <label id="recurrence-end-date-wrapper" class="hidden">Data final
+          <input type="date" id="recurrence-end-date">
+        </label>
+        <label id="recurrence-end-count-wrapper" class="hidden">Quantidade de repetições
+          <input type="number" id="recurrence-end-count" min="1" placeholder="ex: 10">
+        </label>
+      </div>
+      <button type="submit" id="task-form-submit-btn">Criar tarefa</button>
+    </form>
+  </section>
+
+  <section id="view-relatorios" class="view hidden">
+    <h2>Relatórios</h2>
+    <h3>Concluídas</h3>
+    <div class="filters">
+      <label>De <input type="date" id="report-start"></label>
+      <label>Até <input type="date" id="report-end"></label>
+      <button id="report-filter-btn">Filtrar</button>
+    </div>
+    <ul id="completed-list" class="task-list"></ul>
+
+    <h3>Pendentes (tempo parado)</h3>
+    <ul id="pending-report-list" class="task-list"></ul>
+  </section>
+
+  <section id="view-usuarios" class="view hidden">
+    <h2>Usuários</h2>
+
+    <h3>Todos os usuários</h3>
+    <ul id="all-users-list" class="task-list"></ul>
+
+    <h3>Vincular usuário</h3>
+    <p class="meta">Você só pode atribuir tarefas a usuários vinculados a você.</p>
+    <form id="link-form">
+      <label>Vincular com
+        <select id="link-target"></select>
+      </label>
+      <button type="submit">Vincular</button>
+    </form>
+
+    <h3>Meus vínculos</h3>
+    <ul id="links-list" class="task-list"></ul>
+  </section>
+</main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

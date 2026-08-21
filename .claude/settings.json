@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command *)",
+      "Bash(curl *)",
+      "Bash(\".venv/Scripts/python.exe\" *)",
+      "Bash(.venv/Scripts/python.exe *)",
+      "Bash(python -m backend.main)",
+      "Bash(python orchestrator.py)",
+      "Bash(python -m venv .venv)",
+      "Bash(rm -f \"/c/Users/jcan_/source/TaskAzRa/data/taskazra.db\")",
+      "Bash(python -m json.tool)",
+      "Bash(grep *)"
+    ]
+  }
+}
