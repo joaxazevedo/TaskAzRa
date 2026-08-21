@@ -635,7 +635,54 @@ const PRIORITY_GROUPS = [
   { key: "baixa", label: "Baixa prioridade" },
 ];
 
+const GROUP_BY_STORAGE_KEY = "taskazra_group_by";
+
 let currentPendentesInstances = [];
+
+function appendGroup(container, label, group) {
+  const heading = document.createElement("h4");
+  heading.className = "priority-group-title";
+  heading.textContent = label;
+  container.appendChild(heading);
+
+  const ul = document.createElement("ul");
+  ul.className = "task-list";
+  group.forEach((inst) => ul.appendChild(buildPendenteCard(inst)));
+  container.appendChild(ul);
+}
+
+function renderGroupedByPriority(container, instances) {
+  // Cada prioridade forma sua própria grade — se a Alta tiver só 1 ou 2
+  // tarefas, o resto da linha fica vazio em vez de "puxar" itens da
+  // Média pra preencher, como aconteceria numa grade única contínua.
+  PRIORITY_GROUPS.forEach(({ key, label }) => {
+    const group = instances.filter((inst) => inst.priority === key);
+    if (group.length) appendGroup(container, label, group);
+  });
+}
+
+function renderGroupedByTags(container, instances) {
+  // Uma tarefa com várias tags aparece em cada grupo correspondente —
+  // não há "dono" único do jeito que existe com prioridade.
+  const byTag = new Map();
+  const semTag = [];
+  instances.forEach((inst) => {
+    if (!inst.tags || !inst.tags.length) {
+      semTag.push(inst);
+      return;
+    }
+    inst.tags.forEach((tag) => {
+      if (!byTag.has(tag)) byTag.set(tag, []);
+      byTag.get(tag).push(inst);
+    });
+  });
+
+  Array.from(byTag.keys())
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((tag) => appendGroup(container, `#${tag}`, byTag.get(tag)));
+
+  if (semTag.length) appendGroup(container, "Sem tag", semTag);
+}
 
 function renderPendentesList() {
   const searchTerm = document.getElementById("pendentes-search").value.trim().toLowerCase();
@@ -655,26 +702,25 @@ function renderPendentesList() {
     return;
   }
 
-  // Cada prioridade forma sua própria grade — se a Alta tiver só 1 ou 2
-  // tarefas, o resto da linha fica vazio em vez de "puxar" itens da
-  // Média pra preencher, como aconteceria numa grade única contínua.
-  PRIORITY_GROUPS.forEach(({ key, label }) => {
-    const group = instances.filter((inst) => inst.priority === key);
-    if (!group.length) return;
-
-    const heading = document.createElement("h4");
-    heading.className = "priority-group-title";
-    heading.textContent = label;
-    container.appendChild(heading);
-
-    const ul = document.createElement("ul");
-    ul.className = "task-list";
-    group.forEach((inst) => ul.appendChild(buildPendenteCard(inst)));
-    container.appendChild(ul);
-  });
+  const groupBy = document.getElementById("pendentes-group-by").value;
+  if (groupBy === "tags") {
+    renderGroupedByTags(container, instances);
+  } else {
+    renderGroupedByPriority(container, instances);
+  }
 }
 
 document.getElementById("pendentes-search").addEventListener("input", renderPendentesList);
+
+(function setupGroupBySelect() {
+  const select = document.getElementById("pendentes-group-by");
+  const saved = localStorage.getItem(GROUP_BY_STORAGE_KEY);
+  if (saved) select.value = saved;
+  select.addEventListener("change", () => {
+    localStorage.setItem(GROUP_BY_STORAGE_KEY, select.value);
+    renderPendentesList();
+  });
+})();
 
 async function loadPendentes() {
   const filterPersonId = document.getElementById("pendentes-filter-person").value;

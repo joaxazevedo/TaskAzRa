@@ -2,6 +2,14 @@
 
 Todas as mudanças notáveis do TaskAzRa são registradas aqui.
 
+## [0.15.1] - 2026-08-20
+### Adicionado
+- Suporte a banco de testes separado via variável de ambiente `TASKAZRA_DB_PATH`, pra rodar verificações sem sujar o banco real (`data/taskazra.db`).
+
+## [0.15.0] - 2026-08-20
+### Adicionado
+- Seletor "Agrupar por" na tela de Pendentes, permitindo alternar entre agrupar por prioridade (padrão) ou por tags. Uma tarefa com várias tags aparece em cada grupo correspondente; tarefas sem tag ficam num grupo "Sem tag". A escolha fica salva no navegador.
+
 ## [0.14.3] - 2026-08-13
 ### Corrigido
 - Bloco de comentários de uma tarefa fechava sozinho no próximo refresh automático (a cada 8s) se você tivesse aberto ele mas não estivesse com o campo de texto focado. Agora o bloco permanece aberto até ser fechado manualmente, independente do polling.

@@ -190,6 +190,16 @@ Sem build step, sem framework — só `index.html` + `style.css` + `app.js`, ser
 
 Não há Docker, containers ou orquestração cloud — igual ao projeto anterior, tudo roda como processos locais na mesma máquina.
 
+## 9.1 Banco de testes
+
+Por padrão o app usa `data/taskazra.db`. Pra testar sem sujar os dados reais (contas, vínculos, tarefas de verdade), defina a variável de ambiente `TASKAZRA_DB_PATH` apontando pra outro arquivo antes de subir a API — ela é lida em `common/db.py`. Exemplo:
+
+```
+TASKAZRA_DB_PATH=data/taskazra_test.db python -m backend.main
+```
+
+`data/taskazra_test.db` já é ignorado pelo git (mesmo padrão `data/*.db` do `.gitignore`) e pode ser recriado a qualquer momento com `init_db()` sem risco pro banco principal.
+
 ## 10. Decisões de design e limitações conhecidas
 
 - **Sem ORM (SQLAlchemy):** SQL escrito à mão em todas as queries, por decisão explícita — mantém consistência com o projeto anterior e evita uma dependência a mais.
