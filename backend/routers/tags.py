@@ -11,7 +11,19 @@ router = APIRouter(prefix="/tags", tags=["tags"])
 def list_tags(current_user: sqlite3.Row = Depends(get_current_user)):
     conn = get_connection()
     try:
-        rows = conn.execute("SELECT id, name FROM tags ORDER BY name COLLATE NOCASE").fetchall()
+        # Só tags de tarefas com pelo menos uma instância pendente — uma tag
+        # cujas tarefas já foram todas concluídas não deve continuar
+        # sugerida na criação/edição.
+        rows = conn.execute(
+            """
+            SELECT DISTINCT t.id, t.name
+            FROM tags t
+            JOIN task_tags tt ON tt.tag_id = t.id
+            JOIN task_instances ti ON ti.task_id = tt.task_id
+            WHERE ti.status = 'pendente'
+            ORDER BY t.name COLLATE NOCASE
+            """
+        ).fetchall()
     finally:
         conn.close()
     return [dict(r) for r in rows]

@@ -2,6 +2,10 @@
 
 Todas as mudanças notáveis do TaskAzRa são registradas aqui.
 
+## [0.15.2] - 2026-08-20
+### Corrigido
+- `GET /tags` (usado no autocomplete do campo de tags em Nova tarefa/Editar) agora só retorna tags de tarefas com pelo menos uma instância pendente — tags cujas tarefas já foram todas concluídas não aparecem mais como sugestão.
+
 ## [0.15.1] - 2026-08-20
 ### Adicionado
 - Suporte a banco de testes separado via variável de ambiente `TASKAZRA_DB_PATH`, pra rodar verificações sem sujar o banco real (`data/taskazra.db`).
