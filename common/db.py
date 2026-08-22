@@ -1,7 +1,11 @@
+import os
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "taskazra.db"
+# TASKAZRA_DB_PATH permite apontar pra um banco separado (ex: de testes),
+# sem mexer no banco real usado pelo app em uso normal.
+_env_path = os.environ.get("TASKAZRA_DB_PATH")
+DB_PATH = Path(_env_path) if _env_path else Path(__file__).resolve().parent.parent / "data" / "taskazra.db"
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS users (
